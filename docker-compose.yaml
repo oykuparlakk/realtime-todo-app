@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  # NestJS Todo Api
+  api:
+    build:
+      dockerfile: Dockerfile
+      context: ./api
+      # Only build development stage from our dockerfile
+      target: development
+    volumes:
+      - ./api:/oykuparlak/src/app
+      - /oykuparlak/src/app/node_modules
+    # dev mode: npm run start:dev / debug: npm run start:debug
+    command: npm run start:dev
+    depends_on:
+      - postgres
+    ports:
+      - "${PORT}:3000"  # Use the PORT variable from .env for the API service
+
+  postgres:
+    image: postgres:14.4
+    environment:
+      POSTGRES_USER: "${DB_USER}"  # Use the DB_USER variable from .env
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"  # Use the DB_PASSWORD variable from .env
+      POSTGRES_DB: "${DB_DB}"  # Use the DB_DB variable from .env
+    ports:
+      - 35000:5432
+
+  postgres_admin:
+    image: dpage/pgadmin4:6.12
+    depends_on:
+      - postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "${PGADMIN_EMAIL}"  # You need to add this variable to .env
+      PGADMIN_DEFAULT_PASSWORD: "${PGADMIN_PASSWORD}"  # You need to add this variable to .env
+    ports:
+      - 5050:80

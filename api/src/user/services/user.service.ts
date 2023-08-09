@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AuthService } from 'src/auth/services/auth.services';
-import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
+import { Repository } from 'typeorm';
+import { AuthService } from '../../auth/services/auth.service';
 import { UserI } from '../user.interfaces';
 
 @Injectable()
@@ -15,11 +15,15 @@ export class UserService {
   async create(newUser: UserI): Promise<UserI> {
     const emailExists: boolean = await this.mailExists(newUser.email);
     const usernameExists: boolean = await this.usernameExists(newUser.username);
+    console.log('buraya da geldim aw', emailExists, '2', usernameExists);
 
     if (emailExists === false && usernameExists === false) {
+      console.log('newUser', newUser);
       const passwordHash: string = await this.authService.hashPassword(
         newUser.password,
       );
+      console.log('passwordHash', passwordHash);
+
       newUser.password = passwordHash;
       newUser.email = newUser.email.toLowerCase();
       newUser.username = newUser.username.toLowerCase();
@@ -38,17 +42,21 @@ export class UserService {
 
   async login(user: UserI): Promise<string> {
     const foundUser: UserI = await this.findByEmail(user.email);
-
+    console.log('foundUser', foundUser);
     if (foundUser) {
       const passwordsMatching: boolean =
         await this.authService.comparePasswords(
           user.password,
           foundUser.password,
         );
-
+      console.log('passwordsMatching', passwordsMatching);
       if (passwordsMatching === true) {
         const payload: UserI = await this.findOne(foundUser.id);
-        return this.authService.generateJwt(payload);
+        console.log(
+          'await this.authService.generateJwt(payload);',
+          await this.authService.generateJwt(payload),
+        );
+        return await this.authService.generateJwt(payload);
       } else {
         throw new HttpException(
           'Login was not successfull, wrong credentils',
@@ -58,6 +66,14 @@ export class UserService {
     } else {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
+  }
+
+  async getOneById(id: number): Promise<UserI> {
+    return this.userRepository.findOneOrFail({
+      where: {
+        id: id,
+      },
+    });
   }
 
   private async findByEmail(email: string): Promise<UserI> {

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { tap } from 'rxjs';
 import { UserService } from '../../services/user-service/user.service';
 
 @Component({
@@ -25,7 +26,9 @@ export class LoginComponent {
         this.userService.login({
           email: this.email.value,
           password: this.password.value,
-        }).subscribe();
+        }).pipe(
+          tap(() => this.router.navigate(['../../private/dashboard']))
+          ).subscribe();
       }
   
     }

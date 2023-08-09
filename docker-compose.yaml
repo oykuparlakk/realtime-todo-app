@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  #Frontend
+  # Angular Frontend
   frontend:
     build:
       dockerfile: Dockerfile
@@ -9,36 +9,36 @@ services:
       target: development
     command: npm run start
     volumes:
-      - ./frontend:/oykuparlak/frontend/src/app
+      - ./frontend:/thomas/frontend/src/app
       - /oykuparlak/frontend/src/app/node_modules
     ports:
       - "4200:4200"
     depends_on:
       - api
+    environment:
+      - PROXY_API_URL=http://api:3000  # Yeni eklenen environment değişkeni
 
   # NestJS Todo Api
   api:
     build:
       dockerfile: Dockerfile
       context: ./api
-      # Only build development stage from our dockerfile
       target: development
     volumes:
       - ./api:/oykuparlak/src/app
       - /oykuparlak/src/app/node_modules
-    # dev mode: npm run start:dev / debug: npm run start:debug
     command: npm run start:dev
     depends_on:
       - postgres
     ports:
-      - "${PORT}:3000"  # Use the PORT variable from .env for the API service
+      - "3000:3000"
 
   postgres:
     image: postgres:14.4
     environment:
-      POSTGRES_USER: "${DB_USER}"  # Use the DB_USER variable from .env
-      POSTGRES_PASSWORD: "${DB_PASSWORD}"  # Use the DB_PASSWORD variable from .env
-      POSTGRES_DB: "${DB_DB}"  # Use the DB_DB variable from .env
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 520741
+      POSTGRES_DB: todo-app
     ports:
       - 35000:5432
 
@@ -47,7 +47,7 @@ services:
     depends_on:
       - postgres
     environment:
-      PGADMIN_DEFAULT_EMAIL: "${PGADMIN_EMAIL}"  # You need to add this variable to .env
-      PGADMIN_DEFAULT_PASSWORD: "${PGADMIN_PASSWORD}"  # You need to add this variable to .env
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: password
     ports:
       - 5050:80
